@@ -1,0 +1,65 @@
+---
+title: "HW4_Q1"
+author: "Daniil Deych"
+date: "`r Sys.Date()`"
+output: pdf_document:
+          keep_md: TRUE
+---
+
+## Q1
+
+# PCA
+
+The two graphs below represent the PCA analysis of the wine data. The PCA algorithm had little trouble distinguishing between the two "colors" of the wines, as can be easily seen from the first graph.
+
+However, the PCA had difficulties with determining quality of the wine, as determinied by the wine snobs. On further thought that conclusion should not be surprising, since wine quality is extremely subjective, and if there existed such deterministic formula that creates high quality wine, it would very easily replicated. Such is not the case.
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(tibble)
+library(ggplot2)
+library(dplyr)
+
+wine_data = read.csv("data/wine.csv")
+
+wine_data_ID = tibble::rowid_to_column(wine_data, "id")
+
+wine_data_colorless <-  select(wine_data_ID, -color, -quality)
+
+PCA_wine_color = prcomp(wine_data_colorless, scale. = TRUE, rank = 2)
+loadings_wine_color = PCA_wine_color$rotation
+scores_wine_color = PCA_wine_color$x
+
+qplot(scores_wine_color[,1], scores_wine_color[,2], color=wine_data_ID$color, xlab='Component 1', ylab='Count')
+
+PCA_wine_quality= prcomp(wine_data_colorless, scale. = TRUE, rank = 2)
+loadings_wine_quality = PCA_wine_quality$rotation
+scores_wine_quality = PCA_wine_quality$x
+
+qplot(scores_wine_quality[,1], scores_wine_quality[,2], color=wine_data_ID$quality, xlab='Component 1', ylab='Component 2')
+
+```
+
+# Clustering Analysis
+
+Clustering analysis did not provide any useful results. Below is a plot of the K-means algorithm, with k=2 and 7, in hopes that it would be able to break down the data either by color (red or white) or quality (3-9). However, as the graphs below suggeset no appropriate clustering took place, which after doing some research isn't surprising, as none of the chemical properties of the data aren't actually indicative of grape color on their own. As for quality, similarily to the PCA analysis, it appears that chemical composition (that is provided by the data) isn't deterministic of the determined quality.
+
+```{r, echo=FAlSE}
+
+library(foreach)
+library(mosaic)
+
+wine_data_colorless2 <- select(wine_data, -color, -quality)
+
+wine_data_colorless2_scaled = scale(wine_data_colorless2, center = TRUE, scale = TRUE)
+
+wine_cluster1 = kmeans(wine_data_colorless2_scaled, 7, n=25)
+
+wine_cluster2 = kmeans(wine_data_colorless2_scaled, 2, n=25)
+
+qplot(pH, sulphates, data=wine_data, color=factor(wine_cluster1$cluster))
+
+qplot(pH, sulphates, data=wine_data, color=factor(wine_cluster2$cluster))
+```
+
+
