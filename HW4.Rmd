@@ -1,0 +1,53 @@
+---
+title: "HW4"
+output: github_document
+date: "2023-04-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(arules)
+library(arulesViz)
+library(tidyverse)
+library(readr)
+library(knitr)
+library(igraph)
+library(RColorBrewer)
+```
+
+## Question 3
+
+For this rule selection, I set the minimum support to 0.003, minimum confidence to 0.2, and minimum length of the rules to 2. These thresholds were chosen based on trial and error to find a good balance between the number of rules generated and their interestingness.  Some of the interesting associations that we see are people who buy instant food products are more likely to buy hamburger meat, people who buy flour are more likely to buy sugar, and people who buy processed cheese are more likely to buy white bread.  These rules all make sense - baking, sandwich making, easy meals, etc.  The relative frequency plots as well as association plots and top 5 association rules are shown below.
+
+```{r, include = FALSE}
+groceries <- read.transactions("groceries.txt", sep = ",")
+summary(groceries)
+inspect(groceries[1:5])
+```
+
+
+```{r, include = FALSE}
+rules <- apriori(groceries, parameter = list(support = 0.003, confidence = 0.2, minlen = 2))
+
+t1 = inspect(sort(rules[1:5], by = "lift"))
+```
+
+
+```{r, echo = FALSE, warning=FALSE}
+
+kable(t1)
+plot(rules, jitter = 0)
+arules::itemFrequencyPlot(groceries, topN = 20,
+                          col = brewer.pal(8, 'Pastel2'),
+                          main = 'Relative Item Frequency Plot',
+                          type = "relative",
+                          ylab = "Item Frequency (Relative)")
+groceries_graph = associations2igraph(subset(rules, lift>2), associationsAsNodes = FALSE)
+
+
+```
+
+
+
