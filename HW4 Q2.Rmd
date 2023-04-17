@@ -1,0 +1,107 @@
+---
+title: "HW4 Q2"
+output:
+  pdf_document: default
+date: "2023-04-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(igraph)
+library(dplyr)
+library(readr)
+library(Hmisc)
+```
+
+## Question 2
+
+Here we attempt to find market segments for the company by finding correlations between the topic of user's twitter posts. We construct a graph showing an edge between two topics if the topics have correlation greater than 0.25:
+
+```{r, include = FALSE}
+social_marketing <- read_csv("social_marketing.csv")
+df = social_marketing
+
+X = df[,-1]
+
+CM2 <- rcorr(as.matrix(X))
+CM2
+
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
+}
+
+# corrplot(CM2$r, type="upper", order="hclust", 
+#          p.mat = CM2$P, sig.level = 0.01, insig = "blank")
+
+CM4 <- flattenCorrMatrix(CM2$r, CM2$P)
+
+```
+```{r, include = FALSE}
+#Graph 4 Correlation >0.25
+CM7 = CM4 %>% filter(cor >0.25)
+CM7 <- CM7[,1:2]
+set.seed(19)
+g3 <- graph.data.frame(CM7, directed=FALSE)
+V(g3)$label.cex <- seq(0.15,1,length.out=1)
+plot(g3, vertex.label = V(g3)$name, vertex.size = 15,
+     edge.arrow.size = 0.5)
+
+```
+
+```{r, echo=FALSE}
+plot(g3, vertex.label = V(g3)$name, vertex.size = 15,
+     edge.arrow.size = 0.5)
+
+
+
+```
+
+We can distinctly see 7 different groups of correlated user interests.
+
+
+Group 1 - Adults with kids
+(School, Food, Family, Parenting, Religion, Sports Fandom)
+
+Given the topics of school, parenting and family it is reasonable to assume that this segment is comprised of people who either have children or want children. Family friendly messaging is likely likely important for this segment. The sports fandom interest also suggests it may be disproportionately male.
+
+
+
+Group 2 - Current Events
+(Politics, Travel, Computers, News, Automotive)
+
+Politics is the center of this network and is correlated with all other members. This market segment also seems to keep up with world trends in culture and technology following the news, travel and computers. Corporate messaging that is current and relevant would be best for this group.  
+
+Group 3 - Aesthetically Oriented
+(Beauty, Fashion, Cooking, Photo Sharing, Shopping, Chatter)
+
+This market segment is likely highly keen on the image with interests in beauty, shopping, photo sharing and fashion. There is also a chance this segment is disproportionately female.
+
+
+Group 4 - Creatives
+(Art, TV_fim, Music)
+
+Here we have individuals who might appreciate uniqe and original marketing with an artistic bent. 
+
+
+Group 5 - College Men
+(Sports_playing, online_gaming, college_uni)
+
+This segment seems to be largely comprised of young men, historically advertisement using attractive women has been targeted for this group.
+
+
+Group 6 - Health
+(health_nutrition, personal_fitness, outdoors)
+
+This group is very active and concerned with personal health, any health features of the drink should be highlighted for this group.
+
+Group 7 - Bots
+(Spam, Adult)
+
+These are likely not real followers. 
+
